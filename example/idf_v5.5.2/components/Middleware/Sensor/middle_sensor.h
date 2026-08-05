@@ -1,7 +1,6 @@
 #pragma once
 
-#include "esp_err.h"
-#include <stdbool.h>
+#include "bsp/esp32_s3_matrix.h"
 
 esp_err_t middle_init_shtc3(void); // Initialize SHTC3 sensor
 

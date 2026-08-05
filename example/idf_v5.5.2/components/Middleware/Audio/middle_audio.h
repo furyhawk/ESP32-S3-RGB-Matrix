@@ -1,9 +1,7 @@
 #pragma once
 
-#include "esp_err.h"
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include "bsp/esp32_s3_matrix.h"
+
 
 /*
  * @brief Initialize audio service

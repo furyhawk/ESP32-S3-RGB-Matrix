@@ -2,8 +2,8 @@
 #include <FastLED.h>
 
 // Configure for your panel(s) as appropriate!
-#define PANEL_WIDTH 64
-#define PANEL_HEIGHT 64  	// Panel height of 64 will required PIN_E to be defined.
+#define PANEL_WIDTH 80
+#define PANEL_HEIGHT 40  	// Panel height of 64 will required PIN_E to be defined.
 #define PANELS_NUMBER 1 	// Number of chained panels, if just a single panel, obviously set to 1
 
 #define PANE_WIDTH PANEL_WIDTH * PANELS_NUMBER

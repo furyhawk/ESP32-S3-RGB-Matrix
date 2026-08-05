@@ -74,11 +74,11 @@ void font_5x7_start(void) {
   /* =======================
    * 2. Init UI (LVGL Locked)
    * ======================= */
-  bool locked = bsp_display_lock(0);
+  bool locked = lvgl_port_lock(0);
   if (locked) {
     font_5x7_ui_init();
     font_5x7_ui_apply();
-    bsp_display_unlock();
+    lvgl_port_unlock();
   }
 
   /* =======================

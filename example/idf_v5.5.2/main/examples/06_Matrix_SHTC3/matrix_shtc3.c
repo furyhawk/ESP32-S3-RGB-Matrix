@@ -1,9 +1,4 @@
-#include "bsp/display.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "common_ui.h"
-#include "middle_sensor.h"
-#include <stdio.h>
+#include "matrix_shtc3.h"
 
 typedef struct {
   esp_err_t shtc3_init_ret;
@@ -19,6 +14,33 @@ static SHTC3_UI ui;
 static shtc3_state_t shtc3_state;
 static lv_obj_t *hum_val_label;
 static char hum_val_text[96];
+
+static void shtc3_ui_apply(const shtc3_state_t *st);
+
+static void shtc3_refresh_task(void *arg) {
+  (void)arg;
+
+  while (true) {
+    float temp = 0.0f;
+    float hum = 0.0f;
+    esp_err_t r = middle_read_shtc3(&temp, &hum);
+
+    if (r == ESP_OK) {
+      shtc3_state.temp_c = temp;
+      shtc3_state.hum_rh = hum;
+    }
+
+    shtc3_state.shtc3_init_ret = r;
+
+    bool locked = lvgl_port_lock(0);
+    if (locked) {
+      shtc3_ui_apply(&shtc3_state);
+      lvgl_port_unlock();
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(500));
+  }
+}
 
 static void shtc3_ui_init(void) {
   /* =======================
@@ -73,39 +95,20 @@ static void shtc3_ui_apply(const shtc3_state_t *st) {
   lv_label_set_text(hum_val_label, hum_val_text);
 }
 
-static void shtc3_data_update(lv_timer_t *t) {
-  /* =======================
-   * 1. Read Sensor & Refresh UI
-   * ======================= */
-  float temp = 0.0f;
-  float hum = 0.0f;
-  esp_err_t r = middle_read_shtc3(&temp, &hum);
-  if (r == ESP_OK) {
-    shtc3_state.temp_c = temp;
-    shtc3_state.hum_rh = hum;
-  }
-  shtc3_state.shtc3_init_ret = r;
-  shtc3_ui_apply(&shtc3_state);
-}
-
 void shtc3_start(void) {
   /* =======================
    * 1. Start Display & UI
    * ======================= */
-  bool locked = bsp_display_lock(0);
+  bool locked = lvgl_port_lock(0);
   if (locked) {
     shtc3_ui_init();
-    bsp_display_unlock();
+    lvgl_port_unlock();
   }
   /* =======================
-   * 2. Init Sensor & Timer
+   * 2. Init Sensor & Task
    * ======================= */
   shtc3_state.shtc3_init_ret = middle_init_shtc3();
-  locked = bsp_display_lock(0);
-  if (locked) {
-    ui_create_timer(500, shtc3_data_update);
-    bsp_display_unlock();
-  }
+  xTaskCreate(shtc3_refresh_task, "shtc3_ui", 4096, NULL, tskIDLE_PRIORITY + 2, NULL);
 
   /* =======================
    * 3. Idle Loop

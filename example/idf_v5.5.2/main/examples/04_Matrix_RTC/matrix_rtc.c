@@ -1,9 +1,4 @@
-#include "bsp/display.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "common_ui.h"
-#include "middle_rtc.h"
-#include <stdio.h>
+#include "matrix_rtc.h"
 
 typedef struct {
   esp_err_t rtc_init_ret;
@@ -170,18 +165,18 @@ static void rtc_data_update(lv_timer_t *t) {
 }
 
 void rtc_start(void) {
-  bool locked = bsp_display_lock(0);
+  bool locked = lvgl_port_lock(0);
   if (locked) {
     rtc_ui_init();
-    bsp_display_unlock();
+    lvgl_port_unlock();
   }
   middle_rtc_init();
   middle_rtc_set_time(rtc_state.rtc_time);
   middle_rtc_alarm(3);
-  locked = bsp_display_lock(0);
+  locked = lvgl_port_lock(0);
   if (locked) {
     ui_create_timer(1, rtc_data_update);
-    bsp_display_unlock();
+    lvgl_port_unlock();
   }
   while (true) {
     vTaskDelay(pdMS_TO_TICKS(1000));

@@ -1,4 +1,3 @@
-
 // Example sketch which shows how to display some patterns
 // on a 64x32 LED matrix
 //
@@ -96,7 +95,7 @@ void setup() {
 
   mxconfig.gpio.e = 9;
   mxconfig.clkphase = false;
-  mxconfig.driver = HUB75_I2S_CFG::SHIFTREG;
+  mxconfig.driver = HUB75_I2S_CFG::FM6126A;
 
   // Display Setup
   dma_display = new MatrixPanel_I2S_DMA(mxconfig);

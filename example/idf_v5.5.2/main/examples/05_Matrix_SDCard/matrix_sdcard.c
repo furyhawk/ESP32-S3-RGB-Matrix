@@ -1,11 +1,5 @@
-#include "bsp/display.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include "common_ui.h"
 #include "middle_sdcard.h"
-#include "sdkconfig.h"
-#include <stdio.h>
-#include <stdint.h>
 
 typedef struct {
   esp_err_t sd_init_ret;
@@ -120,10 +114,10 @@ void sdcard_start(void) {
   /* =======================
    * 1. Start Display & UI
    * ======================= */
-  bool locked = bsp_display_lock(0);
+  bool locked = lvgl_port_lock(0);
   if (locked) {
     sdcard_ui_init();
-    bsp_display_unlock();
+    lvgl_port_unlock();
   }
 
   /* =======================
@@ -134,10 +128,10 @@ void sdcard_start(void) {
   /* =======================
    * 3. Periodic Refresh
    * ======================= */
-  locked = bsp_display_lock(0);
+  locked = lvgl_port_lock(0);
   if (locked) {
     ui_create_timer(1000, sdcard_data_update);
-    bsp_display_unlock();
+    lvgl_port_unlock();
   }
 
   /* =======================

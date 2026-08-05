@@ -1,7 +1,7 @@
 #pragma once
 
-#include "esp_err.h"
-#include <stddef.h>
+#include "bsp/esp32_s3_matrix.h"
+
 
 esp_err_t middle_sdcard_init(void); // Initialize SD card service
 

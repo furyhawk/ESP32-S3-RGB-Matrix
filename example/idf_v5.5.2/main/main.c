@@ -1,5 +1,6 @@
 #include "bsp/display.h"
 #include "matrix_audio.h"
+#include "matrix_cn_font.h"
 #include "matrix_font_5x7.h"
 #include "matrix_qmi.h"
 #include "matrix_rtc.h"
@@ -8,7 +9,7 @@
 #include "matrix_wifi.h"
 #include "matrix_rgbw.h"
 
-#define MATRIX_EXAMPLE_RGBW         0
+#define MATRIX_EXAMPLE_RGBW         1
 #define MATRIX_EXAMPLE_FONT_5X7     0
 #define MATRIX_EXAMPLE_QMI          0
 #define MATRIX_EXAMPLE_RTC          0
@@ -16,6 +17,7 @@
 #define MATRIX_EXAMPLE_SHTC3        0
 #define MATRIX_EXAMPLE_WIFI         0
 #define MATRIX_EXAMPLE_AUDIO        0
+#define MATRIX_EXAMPLE_CN_Font      0
 
 void app_main(void) {
     init_display();
@@ -36,5 +38,7 @@ void app_main(void) {
     qmi_start();
 #elif MATRIX_EXAMPLE_AUDIO
     audio_start();
+#elif MATRIX_EXAMPLE_CN_Font
+    cn_font_start();
 #endif
 }

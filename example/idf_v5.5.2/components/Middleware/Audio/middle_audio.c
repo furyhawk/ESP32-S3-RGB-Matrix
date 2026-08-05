@@ -1,6 +1,4 @@
 #include "middle_audio.h"
-#include "bsp/esp32_s3_matrix.h"
-#include "esp_codec_dev.h"
 
 static esp_codec_dev_handle_t spk = NULL;
 static esp_codec_dev_handle_t mic = NULL;

@@ -1,9 +1,5 @@
 #include "middle_sdcard.h"
 #include "bsp/esp32_s3_matrix.h"
-#include "esp_check.h"
-#include "esp_vfs_fat.h"
-#include "sdmmc_cmd.h"
-#include <stdbool.h>
 
 static const char *TAG = "middle_sdcard";
 static bool sdcard_inited = false;

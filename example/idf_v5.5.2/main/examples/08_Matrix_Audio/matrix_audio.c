@@ -1,9 +1,4 @@
-
-#include "common_ui.h"
-#include "middle_audio.h"
-#include "bsp/display.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#include "matrix_audio.h"
 
 #define AUDIO_SAMPLE_RATE 16000
 #define AUDIO_CHANNELS    2
@@ -228,10 +223,10 @@ void audio_start(void) {
     /* =======================
      * 1. Start Display & UI
      * ======================= */
-    bool locked = bsp_display_lock(0);
+    bool locked = lvgl_port_lock(0);
     if (locked) {
         audio_ui_init();
-        bsp_display_unlock();
+        lvgl_port_unlock();
     }
     /* =======================
      * 2. Start Audio Task
@@ -241,10 +236,10 @@ void audio_start(void) {
     /* =======================
      * 3. Periodic UI Refresh
      * ======================= */
-    locked = bsp_display_lock(0);
+    locked = lvgl_port_lock(0);
     if (locked) {
         ui_create_timer(100, audio_data_update);
-        bsp_display_unlock();
+        lvgl_port_unlock();
     }
     /* =======================
      * 4. Idle Loop

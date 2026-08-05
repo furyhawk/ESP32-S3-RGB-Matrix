@@ -1,36 +1,5 @@
-#include "bsp/esp32_s3_matrix.h"
-#include "bsp/display.h"
+#include "bsp/esp_bsp.h"
 #include "bsp_err_check.h"
-#include "driver/gpio.h"
-#include "driver/i2c_master.h"
-#include "driver/i2s_std.h"
-#include "driver/sdmmc_host.h"
-#include "driver/sdspi_host.h"
-#include "driver/spi_master.h"
-#include "esp_check.h"
-#include "esp_heap_caps.h"
-#include "esp_idf_version.h"
-#include "esp_log.h"
-#include "esp_netif.h"
-#include "esp_event.h"
-#include "esp_spiffs.h"
-#include "esp_vfs_fat.h"
-#include "esp_wifi.h"
-#include "esp_lvgl_port.h"
-#include "sdmmc_cmd.h"
-#include "nvs_flash.h"
-#include "esp_codec_dev.h"
-#include "esp_codec_dev_defaults.h"
-#include "iot_button.h"
-#include "button_gpio.h"
-#include "es7210_adc.h"
-#include "es8311_codec.h"
-#include <assert.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <string.h>
-#include <sdkconfig.h>
 
 bool hub75_bridge_init(void);
 void hub75_bridge_draw(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint8_t *buffer, bool big_endian);
@@ -47,7 +16,7 @@ static const char *TAG = "esp32_s3_matrix";
  *     Expose brightness/rotation/start/stop public BSP display APIs.
  * - Public APIs:
  *     bsp_display_brightness_set(): set panel brightness (0~100% -> 0~255).
- *     bsp_display_lock()/bsp_display_unlock(): guard LVGL operations in multi-task context.
+ *     lvgl_port_lock()/lvgl_port_unlock(): guard LVGL operations in multi-task context.
  *     bsp_display_rotate(): rotate target display with lock protection.
  *     bsp_display_start()/bsp_display_start_with_config(): start display pipeline.
  *     init_display(): compatibility wrapper returning esp_err_t.
@@ -137,26 +106,14 @@ uint16_t bsp_display_set_map_mode(bsp_display_map_mode_t mode)
     return display_map_mode;
 }
 
-bool bsp_display_lock(uint32_t timeout_ms)
-{
-    if (!lvgl_port_inited) return false;
-    return lvgl_port_lock(timeout_ms);
-}
-
-void bsp_display_unlock(void)
-{
-    if (!lvgl_port_inited) return;
-    lvgl_port_unlock();
-}
-
 void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation)
 {
     lv_display_t *target = disp ? disp : lvgl_disp;
     if (!target) return;
-    bool locked = bsp_display_lock(1000);
+    bool locked = lvgl_port_lock(1000);
     lv_disp_set_rotation(target, rotation);
     if (locked) {
-        bsp_display_unlock();
+        lvgl_port_unlock();
     }
 }
 
@@ -219,10 +176,10 @@ lv_display_t *bsp_display_start_with_config(const bsp_display_cfg *cfg)
     }
     hub75_bridge_set_brightness(CONFIG_HUB75_BRIGHTNESS);
 
-    bool locked = bsp_display_lock(1000);
+    bool locked = lvgl_port_lock(1000);
     lvgl_disp = lv_display_create(disp_w, disp_h);
     if (!lvgl_disp) {
-        if (locked) bsp_display_unlock();
+        if (locked) lvgl_port_unlock();
         hub75_bridge_deinit();
         bsp_display_free_buffers();
         return NULL;
@@ -235,7 +192,7 @@ lv_display_t *bsp_display_start_with_config(const bsp_display_cfg *cfg)
                            use_double_buffer ? lvgl_buf2 : NULL,
                            buf_bytes,
                            use_double_buffer ? LV_DISPLAY_RENDER_MODE_FULL : LV_DISPLAY_RENDER_MODE_PARTIAL);
-    if (locked) bsp_display_unlock();
+    if (locked) lvgl_port_unlock();
 
     return lvgl_disp;
 }
@@ -245,20 +202,25 @@ esp_err_t init_display(void)
     return bsp_display_start() ? ESP_OK : ESP_FAIL;
 }
 
-esp_err_t bsp_display_stop(void)
+static esp_err_t bsp_display_stop(void)
 {
-    bool locked = bsp_display_lock(1000);
+    bool locked = lvgl_port_lock(1000);
     if (lvgl_disp) {
         lv_display_delete(lvgl_disp);
         lvgl_disp = NULL;
     }
     if (locked) {
-        bsp_display_unlock();
+        lvgl_port_unlock();
     }
     use_double_buffer = false;
     bsp_display_free_buffers();
     hub75_bridge_deinit();
     return ESP_OK;
+}
+
+esp_err_t deinit_display(void)
+{
+    return bsp_display_stop() ? ESP_OK : ESP_FAIL;
 }
 
 /* Peripheral boundary: I2C master bus (BSP level)
@@ -809,6 +771,9 @@ static esp_err_t wifi_start_apsta_with_ap_cfg(wifi_config_t *ap_cfg)
 
 esp_err_t bsp_init_wifi_apsta(const char *sta_ssid, const char *sta_pass)
 {
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    wifi_config_t ap_cfg;
+    
     esp_err_t r = nvs_ensure_inited();
     if (r != ESP_OK) return r;
     esp_netif_init();
@@ -816,11 +781,11 @@ esp_err_t bsp_init_wifi_apsta(const char *sta_ssid, const char *sta_pass)
     if (!netif_sta) netif_sta = esp_netif_create_default_wifi_sta();
     if (!netif_ap) netif_ap = esp_netif_create_default_wifi_ap();
     if (!netif_sta || !netif_ap) return ESP_ERR_NO_MEM;
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&cfg);
-    wifi_config_t ap_cfg;
+
     wifi_fill_open_ap_cfg(&ap_cfg, "ESP32_S3_MATRIX");
     wifi_start_apsta_with_ap_cfg(&ap_cfg);
+
     if (sta_ssid && sta_ssid[0] != '\0') {
         wifi_config_t sta_cfg = { 0 };
         snprintf((char *)sta_cfg.sta.ssid, sizeof(sta_cfg.sta.ssid), "%s", sta_ssid);
@@ -830,6 +795,7 @@ esp_err_t bsp_init_wifi_apsta(const char *sta_ssid, const char *sta_pass)
         esp_wifi_set_config(WIFI_IF_STA, &sta_cfg);
         esp_wifi_connect();
     }
+
     wifi_inited = true;
     ESP_LOGI(TAG, "wifi apsta inited");
     return ESP_OK;

@@ -1,5 +1,6 @@
 #pragma once
 #include "common_ui.h"
+#include "middle_audio.h"
 
 #ifdef __cplusplus
 extern "C" {

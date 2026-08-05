@@ -9,6 +9,7 @@ idf_component_register(
         "examples/06_Matrix_SHTC3/matrix_shtc3.c"
         "examples/07_Matrix_WiFi/matrix_wifi.c"
         "examples/08_Matrix_Audio/matrix_audio.c"
+        "examples/09_Matrix_CN_Font/matrix_cn_font.c"
 
     INCLUDE_DIRS
         "."
@@ -21,6 +22,7 @@ idf_component_register(
         "examples/06_Matrix_SHTC3"
         "examples/07_Matrix_WiFi"
         "examples/08_Matrix_Audio"
+        "examples/09_Matrix_CN_Font"
     REQUIRES
         esp32_s3_matrix
         Middleware

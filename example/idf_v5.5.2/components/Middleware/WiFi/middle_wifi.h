@@ -1,8 +1,6 @@
 #pragma once
 
-#include "esp_err.h"
-#include <stdbool.h>
-#include <stdint.h>
+#include "bsp/esp32_s3_matrix.h"
 
 typedef struct {
     esp_err_t last_err;      // Last error code

@@ -1,5 +1,6 @@
 #pragma once
 
+
 #define BSP_CAPS_DISPLAY        1
 #define BSP_CAPS_AUDIO          1
 #define BSP_CAPS_SDCARD         1

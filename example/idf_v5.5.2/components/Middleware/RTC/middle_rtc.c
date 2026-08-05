@@ -1,7 +1,4 @@
 #include "middle_rtc.h"
-#include "bsp/esp32_s3_matrix.h"
-#include "esp_check.h"
-#include "esp_timer.h"
 
 static const char *TAG = "middle_rtc";
 static bool inited = false;

@@ -1,9 +1,5 @@
 #pragma once
-#include "esp_err.h"
-#include "lvgl.h"
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include "bsp/esp32_s3_matrix.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,6 +53,17 @@ void common_ui_init(void);
  */
 void set_label_gradient_text(lv_obj_t *label, const char *text,
                              uint32_t start_color, uint32_t end_color);
+
+/**
+ * @brief Set gradient text safely for UTF-8 text by rendering one label per character.
+ * @param label Source label used as layout anchor and style source.
+ * @param text UTF-8 text.
+ * @param start_color Gradient start color.
+ * @param end_color Gradient end color.
+ * @return void
+ */
+void set_label_gradient_text_safe(lv_obj_t *label, const char *text,
+                                  uint32_t start_color, uint32_t end_color);
 
 #ifdef __cplusplus
 }

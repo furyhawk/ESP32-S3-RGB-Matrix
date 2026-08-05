@@ -1,4 +1,6 @@
 #pragma once
+#include "common_ui.h"
+#include "middle_rtc.h"
 
 #ifdef __cplusplus
 extern "C" {

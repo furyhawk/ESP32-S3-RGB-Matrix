@@ -1,8 +1,7 @@
 #pragma once
 
-#include "esp_err.h"
+#include "bsp/esp32_s3_matrix.h"
 #include "pcf85063a.h"
-#include <stdint.h>
 
 esp_err_t middle_rtc_init(void); // Initialize RTC service
 

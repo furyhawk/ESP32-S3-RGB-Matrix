@@ -1,9 +1,4 @@
-#include "bsp/display.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "common_ui.h"
-#include "middle_wifi.h"
-#include <stdio.h>
+#include "matrix_wifi.h"
 
 #define WIFI_STA_SSID "CQ793"
 #define WIFI_STA_PASS "123456789"
@@ -122,10 +117,10 @@ void wifi_start(void) {
   /* =======================
    * 1. Start Display & UI
    * ======================= */
-  bool locked = bsp_display_lock(0);
+  bool locked = lvgl_port_lock(0);
   if (locked) {
     wifi_ui_init();
-    bsp_display_unlock();
+    lvgl_port_unlock();
   }
 
   /* =======================
@@ -137,10 +132,10 @@ void wifi_start(void) {
   /* =======================
    * 3. Periodic Refresh
    * ======================= */
-  locked = bsp_display_lock(0);
+  locked = lvgl_port_lock(0);
   if (locked) {
     ui_create_timer(1000, wifi_data_update);
-    bsp_display_unlock();
+    lvgl_port_unlock();
   }
 
   /* =======================

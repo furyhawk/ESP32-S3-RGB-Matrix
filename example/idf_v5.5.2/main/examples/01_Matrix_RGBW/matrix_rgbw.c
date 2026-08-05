@@ -1,9 +1,4 @@
-#include "bsp/display.h"
-#include "esp_log.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "lvgl.h"
-#include <stdbool.h>
+#include "bsp/esp_bsp.h"
 
 static const char *TAG = "RGBW";
 
@@ -32,20 +27,20 @@ void rgbw_start(void) {
   /* =======================
    * 2. Init Screen
    * ======================= */
-  bool locked = bsp_display_lock(1000);
+  bool locked = lvgl_port_lock(1000);
   if (locked) {
     lv_obj_t *screen = lv_scr_act();
     lv_obj_set_style_bg_color(screen, lv_color_hex(0x000000), 0);
-    bsp_display_unlock();
+    lvgl_port_unlock();
   }
   /* =======================
    * 3. Loop Colors
    * ======================= */
   while (true) {
-    locked = bsp_display_lock(1000);
+    locked = lvgl_port_lock(1000);
     if (locked) {
       rgbw_set_color(rgbw_colors[color_index].hex_color);
-      bsp_display_unlock();
+      lvgl_port_unlock();
     }
     ESP_LOGI(TAG, "Current color: %s", rgbw_colors[color_index].name);
     vTaskDelay(pdMS_TO_TICKS(2000));
